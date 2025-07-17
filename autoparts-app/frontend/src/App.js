@@ -40,6 +40,9 @@ function App() {
       });
 
       setResults(response.data);
+      console.log('VIN processed:', response.data);
+      
+      // Clear the input field after processing
       setVin('');
       await fetchAllVins(); // Refresh the list
     } catch (error) {
@@ -243,11 +246,17 @@ function App() {
                   <div className="result-details">
                     <h4>Vehicle Details:</h4>
                     <ul>
-                      <li>Market: {results.data.market}</li>
-                      <li>Year: {results.data.year}</li>
-                      <li>Make: {results.data.make}</li>
-                      <li>Model: {results.data.model}</li>
-                      <li>Frame: {results.data.frame}</li>
+                      <li>Market: {results.data.market} Year: {results.data.year} Make: {results.data.make} Model: {results.data.model} Frame: {results.data.frame}</li>
+                      <li>Group: {results.data.group} </li>
+
+                      {results.data.parts.map((part, index) => (
+                        <div key={index}>
+                          <li>Part Number: {part.part_number}</li>
+                          <li>Description: {part.description}</li>
+                          <li>Quantity: {part.quantity}</li>
+                          <li>Price: {part.price}</li>
+                        </div>
+                      ))}
                     </ul>
                   </div>
                 )}
