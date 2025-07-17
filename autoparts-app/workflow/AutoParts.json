@@ -1,0 +1,235 @@
+{
+  "name": "AutoParts",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vin-lookup",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c454e44c-87c2-4dff-96bd-d3958827dba7",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -200
+      ],
+      "webhookId": "vin-lookup-webhook"
+    },
+    {
+      "parameters": {
+        "url": "https://www.toyodiy.com/",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\",\n  \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\n  \"Accept-Language\": \"en-US,en;q=0.9\",\n  \"Priority\": \"u=0, i\",\n  \"Sec-Ch-Ua\": \"\\\"Not)A;Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"138\\\", \\\"Google Chrome\\\";v=\\\"138\\\"\",\n  \"Sec-Ch-Ua-Mobile\": \"?0\",\n  \"Sec-Ch-Ua-Platform\": \"\\\"Windows\\\"\",\n  \"Sec-Fetch-Dest\": \"document\",\n  \"Sec-Fetch-Mode\": \"navigate\",\n  \"Sec-Fetch-Site\": \"none\",\n  \"Sec-Fetch-User\": \"?1\",\n  \"Upgrade-Insecure-Requests\": \"1\",\n  \"Cookie\": \"S=abkbglmbfc9ue1vh7nehnjagqn; __gads=ID=4c530c582c2ec30f:T=1752194699:RT=1752594601:S=ALNI_MY7oBFQsNcrJfiEWNMuWa-ugk5lBg; __gpi=UID=00001145ae0a2f6d:T=1752194699:RT=1752594601:S=ALNI_MbN_RHsCyxLdUhmQWw5de3HPIgO1w; __eoi=ID=cf64c75d78e0bb25:T=1752194699:RT=1752594601:S=AA-AfjZ33AfDRy5QRrO3fq62o8D_; FCNEC=%5B%5B%22AKsRol80dYM2rh9BWkmHt-LNSzIIWy0TB3L9BKhh_g7naFuNArlEDuD7TQ1-Gkf_CvyhyU2ickYKdoQnWUz2MB-6RgaKSgUDDujuZIy73O-Gb9-U0ZS3MuzFqBoJHPPlcJVBcYaeK9XmYAGDZWy9SnB_Q1DwRC3Vxw%3D%3D%22%5D%5D; cf_clearance=f60J9rjw.gLAnF2d8X7hPkox8CHjnWTyvbtcxlR.EFg-1752598725-1.2.1.1-GKrEccX7WB.1QhSgiu6tHaFm0ZXmHbxr5xQAKbw18srqLHyZ2FzaWL.rnJdTcznvPJGvz44YySytgTDU26pttZ9Yp4ro0IA25Zio0jIGl5Zqj5tmMaZqkwNHvwEjFLN.6MX0VRCjaobZLU4_X259kAx_2aP7EGZK9GrdS6uuStht._hUgMcRCbOHy1TQty7N81mf_MsWhdD.FsAUREzXpTR0y.HBuUGrg__nG8wRTOw\"\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "541b71cc-05f2-4323-87e7-bf14ce3a41ac",
+      "name": "1. Establish Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        220,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract VIN details - Get href from 2nd tr in table with class=\"res\"\nconst html = $input.first().json.data;\n\n// Initialize result object\nconst result = {\n  modelCodeUrl: null,\n  powertrainUrl: null,\n  brakeMasterCylinderUrl: null\n};\n\n// Step 1: Find table with class \"res\"\nconst resTableMatch = html.match(/<table[^>]*class=\"res\"[^>]*>([\\s\\S]*?)<\\/table>/i);\n\nif (resTableMatch) {\n  const resTableContent = resTableMatch[1];\n  \n  // Step 2: Find all <tr> elements within this table\n  const trMatches = resTableContent.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi);\n  \n  if (trMatches && trMatches.length >= 2) {\n    // Step 3: Access the second <tr> (index 1) - this is the data row\n    const secondTr = trMatches[1];\n    \n    // Step 4: Extract href from any link in this tr\n    const hrefMatch = secondTr.match(/<a[^>]*href=\"([^\"]*)\"[^>]*>/i);\n    \n    if (hrefMatch) {\n      const href = hrefMatch[1];\n      // Step 5: Return the complete URL\n      result.modelCodeUrl = href.startsWith('http') ? href : `https://www.toyodiy.com/parts/${href}`;\n      result.powertrainUrl = result.modelCodeUrl ? result.modelCodeUrl.replace('.html', '_2.html') : null;\n      result.brakeMasterCylinderUrl = result.modelCodeUrl ? result.modelCodeUrl.replace(\"/g_\", \"/p_\").replace('.html', '_4702.html') : null;\n    }\n  }\n}\n\nreturn result;"
+      },
+      "id": "a41cb63f-7233-4c3b-8c4a-7a810632c1b5",
+      "name": "3. Extract URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.toyodiy.com/parts/q?vin={{ $node['Webhook'].json['body']['vin'] }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\",\n  \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\n  \"Accept-Language\": \"en-US,en;q=0.9\",\n  \"Priority\": \"u=0, i\",\n  \"Sec-Ch-Ua\": \"\\\"Not)A;Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"138\\\", \\\"Google Chrome\\\";v=\\\"138\\\"\",\n  \"Sec-Ch-Ua-Mobile\": \"?0\",\n  \"Sec-Ch-Ua-Platform\": \"\\\"Windows\\\"\",\n  \"Sec-Fetch-Dest\": \"document\",\n  \"Sec-Fetch-Mode\": \"navigate\",\n  \"Sec-Fetch-Site\": \"same-origin\",\n  \"Sec-Fetch-User\": \"?1\",\n  \"Upgrade-Insecure-Requests\": \"1\",\n  \"Referer\": \"https://www.toyodiy.com\",\n  \"Cookie\": \"S=abkbglmbfc9ue1vh7nehnjagqn; __gads=ID=4c530c582c2ec30f:T=1752194699:RT=1752594601:S=ALNI_MY7oBFQsNcrJfiEWNMuWa-ugk5lBg; __gpi=UID=00001145ae0a2f6d:T=1752194699:RT=1752594601:S=ALNI_MbN_RHsCyxLdUhmQWw5de3HPIgO1w; __eoi=ID=cf64c75d78e0bb25:T=1752194699:RT=1752594601:S=AA-AfjZ33AfDRy5QRrO3fq62o8D_; FCNEC=%5B%5B%22AKsRol80dYM2rh9BWkmHt-LNSzIIWy0TB3L9BKhh_g7naFuNArlEDuD7TQ1-Gkf_CvyhyU2ickYKdoQnWUz2MB-6RgaKSgUDDujuZIy73O-Gb9-U0ZS3MuzFqBoJHPPlcJVBcYaeK9XmYAGDZWy9SnB_Q1DwRC3Vxw%3D%3D%22%5D%5D; cf_clearance=f60J9rjw.gLAnF2d8X7hPkox8CHjnWTyvbtcxlR.EFg-1752598725-1.2.1.1-GKrEccX7WB.1QhSgiu6tHaFm0ZXmHbxr5xQAKbw18srqLHyZ2FzaWL.rnJdTcznvPJGvz44YySytgTDU26pttZ9Yp4ro0IA25Zio0jIGl5Zqj5tmMaZqkwNHvwEjFLN.6MX0VRCjaobZLU4_X259kAx_2aP7EGZK9GrdS6uuStht._hUgMcRCbOHy1TQty7N81mf_MsWhdD.FsAUREzXpTR0y.HBuUGrg__nG8wRTOw\"\n}",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 10
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "a83a31de-79e7-4bdb-9194-26f62d97e72e",
+      "name": "2. Query VIN",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        440,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.brakeMasterCylinderUrl }}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"User-Agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36\",\n  \"Accept\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\",\n  \"Accept-Language\": \"en-US,en;q=0.9\",\n  \"Priority\": \"u=0, i\",\n  \"Sec-Ch-Ua\": \"\\\"Not)A;Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"138\\\", \\\"Google Chrome\\\";v=\\\"138\\\"\",\n  \"Sec-Ch-Ua-Mobile\": \"?0\",\n  \"Sec-Ch-Ua-Platform\": \"\\\"Windows\\\"\",\n  \"Sec-Fetch-Dest\": \"document\",\n  \"Sec-Fetch-Mode\": \"navigate\",\n  \"Sec-Fetch-Site\": \"same-origin\",\n  \"Sec-Fetch-User\": \"?1\",\n  \"Upgrade-Insecure-Requests\": \"1\",\n  \"Referer\": \"https://www.toyodiy.com\",\n  \"Cookie\": \"S=abkbglmbfc9ue1vh7nehnjagqn; __gads=ID=4c530c582c2ec30f:T=1752194699:RT=1752594601:S=ALNI_MY7oBFQsNcrJfiEWNMuWa-ugk5lBg; __gpi=UID=00001145ae0a2f6d:T=1752194699:RT=1752594601:S=ALNI_MbN_RHsCyxLdUhmQWw5de3HPIgO1w; __eoi=ID=cf64c75d78e0bb25:T=1752194699:RT=1752594601:S=AA-AfjZ33AfDRy5QRrO3fq62o8D_; FCNEC=%5B%5B%22AKsRol80dYM2rh9BWkmHt-LNSzIIWy0TB3L9BKhh_g7naFuNArlEDuD7TQ1-Gkf_CvyhyU2ickYKdoQnWUz2MB-6RgaKSgUDDujuZIy73O-Gb9-U0ZS3MuzFqBoJHPPlcJVBcYaeK9XmYAGDZWy9SnB_Q1DwRC3Vxw%3D%3D%22%5D%5D; cf_clearance=f60J9rjw.gLAnF2d8X7hPkox8CHjnWTyvbtcxlR.EFg-1752598725-1.2.1.1-GKrEccX7WB.1QhSgiu6tHaFm0ZXmHbxr5xQAKbw18srqLHyZ2FzaWL.rnJdTcznvPJGvz44YySytgTDU26pttZ9Yp4ro0IA25Zio0jIGl5Zqj5tmMaZqkwNHvwEjFLN.6MX0VRCjaobZLU4_X259kAx_2aP7EGZK9GrdS6uuStht._hUgMcRCbOHy1TQty7N81mf_MsWhdD.FsAUREzXpTR0y.HBuUGrg__nG8wRTOw\"\n}",
+        "options": {
+          "redirect": {
+            "redirect": {
+              "maxRedirects": 10
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "d54ffda7-7bf7-43dc-835e-87c7b135acf6",
+      "name": "4. Query Brake Master Cylinder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        880,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Brake Parts - Find 47201 and 47210L parts with their details\nconst html = $input.first().json.data;\n\nconsole.log('HTML length:', html.length);\nconsole.log('HTML preview:', html.substring(0, 500));\n\n// Function to clean text content\nconst cleanText = (text) => {\n  return text\n    .replace(/<[^>]*>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/\\s+/g, ' ')\n    .trim();\n};\n\n// Initialize result array\nconst result = [];\n\n// Target part codes to look for\nconst targetParts = ['47201', '47210L'];\n\n// Process each target part\ntargetParts.forEach(partCode => {\n  console.log(`\\n=== Processing part: ${partCode} ===`);\n  \n  // Find the position of the target part code in a tr class=\"h\"\n  //  const partRegex = new RegExp(`<tr[^>]*class=\"h\"[^>]*>\\\\s*<td[^>]*>${partCode}</td>`, 'i');\n  //const partRegex = new RegExp(`${partCode}`, 'i');\n  //console.log('Regex pattern:', partRegex.toString());\n  \n  const partMatch = html.search(partCode);\n  console.log('Part match position:', partMatch);\n  \n  if (partMatch !== -1) {\n    // Found the target part, now find the closing </tr> of this header row\n    const afterPartMatch = html.substring(partMatch);\n    console.log('After part match (first 200 chars):', afterPartMatch.substring(0, 200));\n    \n    const closingTrMatch = afterPartMatch.search(/<\\/tr>/i);\n    console.log('Closing tr match position:', closingTrMatch);\n    \n    if (closingTrMatch !== -1) {\n      // Get content after the closing </tr>\n      const afterClosingTr = afterPartMatch.substring(closingTrMatch + 5); // +5 for \"</tr>\"\n      console.log('After closing tr (first 300 chars):', afterClosingTr.substring(0, 300));\n      \n      // Find the next <tbody> to know where to stop\n      const nextTbodyMatch = afterClosingTr.search(/<tbody[^>]*>/i);\n      console.log('Next tbody match position:', nextTbodyMatch);\n      \n      let contentToProcess;\n      if (nextTbodyMatch !== -1) {\n        // Stop at the next <tbody>\n        contentToProcess = afterClosingTr.substring(0, nextTbodyMatch);\n        console.log('Content to process (stopped at next tbody):', contentToProcess);\n      } else {\n        // No next <tbody> found, process until end of table or significant marker\n        const tableEndMatch = afterClosingTr.search(/<\\/table>/i);\n        console.log('Table end match position:', tableEndMatch);\n        if (tableEndMatch !== -1) {\n          contentToProcess = afterClosingTr.substring(0, tableEndMatch);\n          console.log('Content to process (stopped at table end):', contentToProcess);\n        } else {\n          contentToProcess = afterClosingTr;\n          console.log('Content to process (no end marker found):', contentToProcess.substring(0, 500));\n        }\n      }\n      \n      // Extract all tr elements from this content\n      const trMatches = contentToProcess.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi);\n      console.log('TR matches found:', trMatches ? trMatches.length : 0);\n      if (trMatches) {\n        console.log('First TR match:', trMatches[0]);\n      }\n      \n      if (trMatches && trMatches.length > 0) {\n        const parts = [];\n        \n        // Process each tr\n        trMatches.forEach((trMatch, index) => {\n          console.log(`\\nProcessing TR ${index + 1}:`, trMatch);\n          \n          // Extract all td elements from this tr\n          // Use matchAll to reliably capture the contents of each <td>\n          const tdMatches = [...trMatch.matchAll(/<td[^>]*>([^<]*)/gi)];\n          const tdValues = tdMatches.map(m => cleanText(m[1]));\n          \n          console.log('TD matches found:', tdValues.length);\n          console.log('TD contents:', tdValues);\n          \n          if (tdValues.length >= 4) {\n            const partNumber = tdValues[0];\n            const description = tdValues[1];\n            const quantity = parseInt(tdValues[2]) || 0;\n            const price = tdValues[3];\n          \n            console.log('Extracted data:', { partNumber, description, quantity, price });\n            \n            // Only add if we have valid data\n            if (partNumber && partNumber.trim() !== '') {\n              parts.push({\n                part_number: partNumber,\n                description: description,\n                quantity: quantity,\n                price: price\n              });\n              console.log('Added part to array');\n            } else {\n              console.log('Part number empty, skipping');\n            }\n          } else {\n            console.log('Not enough TD elements found');\n          }\n        });\n        \n        console.log('Total parts found for', partCode, ':', parts.length);\n        \n        // Add to result\n        result.push({\n          group: partCode,\n          parts: parts.length > 0 ? parts : null\n        });\n      } else {\n        console.log('No tr elements found after header');\n        // No tr's found after the header\n        result.push({\n          group: partCode,\n          parts: null\n        });\n      }\n    } else {\n      console.log('No closing </tr> found for header');\n      // No closing </tr> found for header\n      result.push({\n        group: partCode,\n        parts: null\n      });\n    }\n  } else {\n    console.log('Target part not found in HTML');\n    // Target part not found\n    result.push({\n      group: partCode,\n      parts: null\n    });\n  }\n});\n\nconsole.log('\\n=== Final result ===');\nconsole.log(JSON.stringify(result, null, 2));\n\nreturn result;"
+      },
+      "id": "6084a8a8-4fc2-4971-9b72-8ccfac8c0129",
+      "name": "5. Extract Brake Parts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "80e6d236-8f8b-49c7-8a14-f2dca6b03bbc",
+      "name": "6. Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        -200
+      ]
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json",
+            "user-agent": "axios/1.10.0",
+            "content-length": "27",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "host": "localhost:5678",
+            "connection": "keep-alive"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "vin": "JTEHC09J307014032"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/vin-lookup",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "1. Establish Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Establish Session": {
+      "main": [
+        [
+          {
+            "node": "2. Query VIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Extract URLs": {
+      "main": [
+        [
+          {
+            "node": "4. Query Brake Master Cylinder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Query VIN": {
+      "main": [
+        [
+          {
+            "node": "3. Extract URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Query Brake Master Cylinder": {
+      "main": [
+        [
+          {
+            "node": "5. Extract Brake Parts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Extract Brake Parts": {
+      "main": [
+        [
+          {
+            "node": "6. Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aad8a3d0-5b29-4ea0-a6ba-6be5faaf613a",
+  "meta": {
+    "instanceId": "28a83379a6e5ac5f7cc9046da6767215e87ce06706c95fb1c6cb816c9e84a5c1"
+  },
+  "id": "8kqlbSC4yiRg6fua",
+  "tags": []
+}

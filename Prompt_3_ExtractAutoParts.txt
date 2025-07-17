@@ -1,0 +1,86 @@
+See below data examples, and generate code for Extract Brake Parts node as follows:
+
+In the input html, look for td 47201 and 47210L, both are optional.
+If found, extract data from all tr's that are after the </tr> and before the next </tbody>.
+
+If td is not found, or if no tr's are found following the td, return null JSON objects for that td or tr.
+
+Example Input:	
+	
+<tbody id="rw7">
+	<tr class="h">
+		<td>47201</td>
+		<td colspan="3" id="tx7">CYLINDER SUB-ASSY, BRAKE MASTER</td>
+	</tr>
+	<tr>
+		<td>47025-60013</td>
+		<td>MARK=47210-60013</td>
+		<td>1</td>
+		<td class="r">$2,642.93</td>
+	</tr>
+	<tr>
+		<td>47025-60043</td>
+		<td>W(VSC)</td>
+		<td>1</td>
+		<td class="r">$2,517.04</td>
+	</tr>
+</tbody>
+
+<tbody id="rw10">
+	<tr class="h">
+		<td>47210L</td>
+		<td colspan="3" id="tx10">BRAKE BOOSTER ASSY, W/MASTER CYLINDER</td>
+	</tr>
+	<tr>
+		<td>47050-60013</td>
+		<td>MARK=47210-60013</td>
+		<td>1</td>
+		<td class="r">$3,903.29</td>
+	</tr>
+	<tr>
+		<td>47050-60043</td>
+		<td>W(VSC)</td>
+		<td>1</td>
+		<td class="r">$3,717.43</td>
+	</tr>
+</tbody>
+
+Example Output, but in json format:
+
+[
+  {
+    "group": "47201",
+    "parts": [
+      {
+        "part_number": "47025-60013",
+        "description": "MARK=47210-60013",
+        "quantity": 1,
+        "price": "$2,642.93"
+      },
+      {
+        "part_number": "47025-60043",
+        "description": "W(VSC)",
+        "quantity": 1,
+        "price": "$2,517.04"
+      }
+    ]
+  },
+  {
+    "group": "47210L",
+    "parts": [
+      {
+        "part_number": "47050-60013",
+        "description": "MARK=47210-60013",
+        "quantity": 1,
+        "price": "$3,903.29"
+      },
+      {
+        "part_number": "47050-60043",
+        "description": "W(VSC)",
+        "quantity": 1,
+        "price": "$3,717.43"
+      }
+    ]
+  }
+]
+	

@@ -1,0 +1,47 @@
+Stock Autoparts
+
+CONTEXT:
+
+	You are an expert in sourcing and stocking of Autoparts from global sources.
+	You primarily operate in Australia & New Zealand markets.
+
+TASK:
+
+	Your task is to help me develop an application that will automate many manual steps involved in this process.
+
+INSTRUCTIONS:
+
+	1. Primary input for the application is VIN of vehicles.
+
+	2. The application should support two modes:
+
+	   a. Accept VIN from user through a web interface.
+
+	   b. Read VINs from a spreadsheet.
+
+	3. For a given VIN:
+
+	   VIN DETAILS:
+
+	   1. Visit ToyoDIY.com
+	   2. Enter Parts Catalog
+	   3. Choose "Select your car" 
+	   4. Input the VIN and Search by VIN
+	   5. Extract all the details such as Market, Year, Make, Model, Frame, Vehicle Characteristics and Search Results
+
+	   PARTS DETAILS:
+
+	   6. Click on the Model Code
+	   7. Click on Powertrain / Chassis
+	   8. Click on the link for 47-02 Brake Master Cylinder
+	   9. Extract the details for part codes 47201 and 47210L
+
+OUTPUT FORMAT:
+
+	A table that captures all the VIN DETAILS and PARTS DETAILS, with proper column headings.
+
+QUESTIONS:
+
+	0. To start with, I just want a write up of high level steps that you will follow in developing this application.
+	1. What will be the architecture of this application?
+	2. Will this be a web based application that can also use backend automation?

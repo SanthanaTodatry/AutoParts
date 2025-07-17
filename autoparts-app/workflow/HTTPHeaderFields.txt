@@ -1,0 +1,36 @@
+FIRST NODE...
+{
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Upgrade-Insecure-Requests": "1",
+  "Priority": "u=0, i",
+  "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"",
+  "Sec-Ch-Ua-Mobile": "?0",
+  "Sec-Ch-Ua-Platform": "\"Windows\"",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "none",
+  "Sec-Fetch-User": "?1",
+  "Cookie": "S=abkbglmbfc9ue1vh7nehnjagqn; __gads=ID=4c530c582c2ec30f:T=1752194699:RT=1752594601:S=ALNI_MY7oBFQsNcrJfiEWNMuWa-ugk5lBg; __gpi=UID=00001145ae0a2f6d:T=1752194699:RT=1752594601:S=ALNI_MbN_RHsCyxLdUhmQWw5de3HPIgO1w; __eoi=ID=cf64c75d78e0bb25:T=1752194699:RT=1752594601:S=AA-AfjZ33AfDRy5QRrO3fq62o8D_; FCNEC=%5B%5B%22AKsRol80dYM2rh9BWkmHt-LNSzIIWy0TB3L9BKhh_g7naFuNArlEDuD7TQ1-Gkf_CvyhyU2ickYKdoQnWUz2MB-6RgaKSgUDDujuZIy73O-Gb9-U0ZS3MuzFqBoJHPPlcJVBcYaeK9XmYAGDZWy9SnB_Q1DwRC3Vxw%3D%3D%22%5D%5D; cf_clearance=f60J9rjw.gLAnF2d8X7hPkox8CHjnWTyvbtcxlR.EFg-1752598725-1.2.1.1-GKrEccX7WB.1QhSgiu6tHaFm0ZXmHbxr5xQAKbw18srqLHyZ2FzaWL.rnJdTcznvPJGvz44YySytgTDU26pttZ9Yp4ro0IA25Zio0jIGl5Zqj5tmMaZqkwNHvwEjFLN.6MX0VRCjaobZLU4_X259kAx_2aP7EGZK9GrdS6uuStht._hUgMcRCbOHy1TQty7N81mf_MsWhdD.FsAUREzXpTR0y.HBuUGrg__nG8wRTOw"
+}
+
+OTHER NODES...
+{
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+  "Accept-Language": "en-US,en;q=0.9",
+  "Upgrade-Insecure-Requests": "1",
+  "Priority": "u=0, i",
+  "Sec-Ch-Ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"",
+  "Sec-Ch-Ua-Mobile": "?0",
+  "Sec-Ch-Ua-Platform": "\"Windows\"",
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "same-origin",
+  "Sec-Fetch-User": "?1",
+  "Referer": "https://www.toyodiy.com",
+  "Cookie": "S=abkbglmbfc9ue1vh7nehnjagqn; __gads=ID=4c530c582c2ec30f:T=1752194699:RT=1752594601:S=ALNI_MY7oBFQsNcrJfiEWNMuWa-ugk5lBg; __gpi=UID=00001145ae0a2f6d:T=1752194699:RT=1752594601:S=ALNI_MbN_RHsCyxLdUhmQWw5de3HPIgO1w; __eoi=ID=cf64c75d78e0bb25:T=1752194699:RT=1752594601:S=AA-AfjZ33AfDRy5QRrO3fq62o8D_; FCNEC=%5B%5B%22AKsRol80dYM2rh9BWkmHt-LNSzIIWy0TB3L9BKhh_g7naFuNArlEDuD7TQ1-Gkf_CvyhyU2ickYKdoQnWUz2MB-6RgaKSgUDDujuZIy73O-Gb9-U0ZS3MuzFqBoJHPPlcJVBcYaeK9XmYAGDZWy9SnB_Q1DwRC3Vxw%3D%3D%22%5D%5D; cf_clearance=f60J9rjw.gLAnF2d8X7hPkox8CHjnWTyvbtcxlR.EFg-1752598725-1.2.1.1-GKrEccX7WB.1QhSgiu6tHaFm0ZXmHbxr5xQAKbw18srqLHyZ2FzaWL.rnJdTcznvPJGvz44YySytgTDU26pttZ9Yp4ro0IA25Zio0jIGl5Zqj5tmMaZqkwNHvwEjFLN.6MX0VRCjaobZLU4_X259kAx_2aP7EGZK9GrdS6uuStht._hUgMcRCbOHy1TQty7N81mf_MsWhdD.FsAUREzXpTR0y.HBuUGrg__nG8wRTOw"
+}
+
+

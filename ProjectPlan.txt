@@ -1,0 +1,11 @@
+PROJECT PLAN:
+
+v1.0.0:
+    DONE) Enter VIN
+    TODO) Fetch VIN Details
+    DONE) Fetch Brake Parts Details
+    TODO) Display Results
+
+v2.0.0:
+    TODO) MOVE Backend logic to N8N
+    

@@ -1,0 +1,20 @@
+Recreate the entire n8n workflow json for the following corrected logic:
+
+	VIN DETAILS:
+
+	0. Receive VIN from Webhook 
+	1. Visit ToyoDIY.com to establish session, and to facilitate passing of session id to later HTTP nodes
+	   (HTTP in the first version of n8n workflow saw the error: Your browser did not accept our session cookie)
+	2. Visit https://www.toyodiy.com/parts/q?vin=<VIN> to fetch VIN Details
+	3. Extract all the details such as Market, Year, Make, Model, Frame, Vehicle Characteristics
+	4. Extract also all the details under Search Results, such as VIN*, Model Code, From, To, Frame, Characteristics, etc
+
+	PARTS DETAILS:
+
+	5. The Model Code is a link to a URL. Visit the Model Code's URL.
+	6. Extract the URL Link for "Powertrain / Chassis"
+	7. Visit the Powertrain Chassis's URL 
+	8. Extract URL link for "47-02: BRAKE MASTER CYLINDER"
+	9. Visit BrakeMasterCylinder's URL
+	10. Extract the details for part codes 47201 and 47210L
+	11. Return the part details in JSON format

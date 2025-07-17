@@ -1,0 +1,340 @@
+{
+  "name": "ToyoDIY VIN Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-vin",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract VIN from webhook data\nconst vin = $input.first().json.vin;\n\nif (!vin) {\n  throw new Error('VIN is required');\n}\n\n// Validate VIN format (basic check)\nif (vin.length !== 17) {\n  throw new Error('VIN must be 17 characters long');\n}\n\nconsole.log(`Processing VIN: ${vin}`);\n\nreturn {\n  vin: vin.toUpperCase(),\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "validate-vin",
+      "name": "Validate VIN",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.toyodiy.com/parts/catalog.html",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          }
+        }
+      },
+      "id": "get-catalog-page",
+      "name": "Get Catalog Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.toyodiy.com/parts/q.php",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "vin",
+              "value": "={{ $json.vin }}"
+            },
+            {
+              "name": "model_hint",
+              "value": ""
+            }
+          ]
+        },
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Referer": "https://www.toyodiy.com/parts/catalog.html"
+          }
+        }
+      },
+      "id": "submit-vin-search",
+      "name": "Submit VIN Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.data }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "No results found",
+              "operator": "contains"
+            }
+          ]
+        }
+      },
+      "id": "check-search-results",
+      "name": "Check Search Results",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract vehicle details from ToyoDIY search results\nconst html = $input.first().json.data;\n\nif (!html) {\n  throw new Error('No HTML content received');\n}\n\n// Initialize result object\nconst result = {\n  vin: $('Validate VIN').first().json.vin,\n  market: '',\n  year: '',\n  make: '',\n  model: '',\n  frame: '',\n  vehicle_characteristics: '',\n  search_results: '',\n  model_link: ''\n};\n\ntry {\n  // Parse HTML to extract vehicle information\n  // This is a simplified extraction - you'll need to adjust based on actual HTML structure\n  \n  // Look for common patterns in ToyoDIY results\n  const marketMatch = html.match(/Market[:\\s]+([^<\\n]+)/i);\n  if (marketMatch) result.market = marketMatch[1].trim();\n  \n  const yearMatch = html.match(/Year[:\\s]+(\\d{4})/i);\n  if (yearMatch) result.year = yearMatch[1];\n  \n  const makeMatch = html.match(/Make[:\\s]+([^<\\n]+)/i);\n  if (makeMatch) result.make = makeMatch[1].trim();\n  \n  const modelMatch = html.match(/Model[:\\s]+([^<\\n]+)/i);\n  if (modelMatch) result.model = modelMatch[1].trim();\n  \n  const frameMatch = html.match(/Frame[:\\s]+([^<\\n]+)/i);\n  if (frameMatch) result.frame = frameMatch[1].trim();\n  \n  // Extract model code link for next step\n  const linkMatch = html.match(/href=\"([^\"]*q\\.php\\?model=[^\"]*)\"/i);\n  if (linkMatch) {\n    result.model_link = 'https://www.toyodiy.com/parts/' + linkMatch[1];\n  }\n  \n  result.search_results = 'Vehicle found successfully';\n  \n  console.log('Extracted vehicle details:', result);\n  \n} catch (error) {\n  console.error('Error parsing vehicle details:', error);\n  result.search_results = 'Error parsing results: ' + error.message;\n}\n\nreturn result;"
+      },
+      "id": "extract-vehicle-details",
+      "name": "Extract Vehicle Details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.model_link }}",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Referer": "https://www.toyodiy.com/parts/catalog.html"
+          }
+        }
+      },
+      "id": "get-model-page",
+      "name": "Get Model Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Powertrain/Chassis link from model page\nconst html = $input.first().json.data;\nconst vehicleData = $('Extract Vehicle Details').first().json;\n\nif (!html) {\n  throw new Error('No model page HTML content received');\n}\n\nlet powertrainLink = '';\n\ntry {\n  // Look for Powertrain or Chassis link\n  const powertrainMatch = html.match(/href=\"([^\"]*)\">\\s*[^<]*(?:Powertrain|Chassis|Engine)[^<]*/i);\n  if (powertrainMatch) {\n    powertrainLink = 'https://www.toyodiy.com/parts/' + powertrainMatch[1];\n  } else {\n    // Try alternative patterns\n    const altMatch = html.match(/href=\"([^\"]*group=47[^\"]*)\"/i);\n    if (altMatch) {\n      powertrainLink = 'https://www.toyodiy.com/parts/' + altMatch[1];\n    }\n  }\n  \n  console.log('Found powertrain link:', powertrainLink);\n  \n} catch (error) {\n  console.error('Error finding powertrain link:', error);\n}\n\nreturn {\n  ...vehicleData,\n  powertrain_link: powertrainLink\n};"
+      },
+      "id": "extract-powertrain-link",
+      "name": "Extract Powertrain Link",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.powertrain_link }}",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          }
+        }
+      },
+      "id": "get-powertrain-page",
+      "name": "Get Powertrain Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Brake Master Cylinder link (47-02)\nconst html = $input.first().json.data;\nconst vehicleData = $('Extract Powertrain Link').first().json;\n\nif (!html) {\n  throw new Error('No powertrain page HTML content received');\n}\n\nlet brakeLink = '';\n\ntry {\n  // Look for Brake Master Cylinder link (47-02)\n  const brakeMatch = html.match(/href=\"([^\"]*)\">\\s*[^<]*(?:47-02|Brake Master Cylinder)[^<]*/i);\n  if (brakeMatch) {\n    brakeLink = 'https://www.toyodiy.com/parts/' + brakeMatch[1];\n  } else {\n    // Try alternative patterns for brake-related links\n    const altMatch = html.match(/href=\"([^\"]*(?:brake|47)[^\"]*)\"/i);\n    if (altMatch) {\n      brakeLink = 'https://www.toyodiy.com/parts/' + altMatch[1];\n    }\n  }\n  \n  console.log('Found brake master cylinder link:', brakeLink);\n  \n} catch (error) {\n  console.error('Error finding brake link:', error);\n}\n\nreturn {\n  ...vehicleData,\n  brake_link: brakeLink\n};"
+      },
+      "id": "extract-brake-link",
+      "name": "Extract Brake Link",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2220, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.brake_link }}",
+        "options": {
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+          }
+        }
+      },
+      "id": "get-brake-parts-page",
+      "name": "Get Brake Parts Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2440, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract parts 47201 and 47210L details\nconst html = $input.first().json.data;\nconst vehicleData = $('Extract Brake Link').first().json;\n\nif (!html) {\n  throw new Error('No brake parts page HTML content received');\n}\n\nconst parts = [];\n\ntry {\n  // Look for part codes 47201 and 47210L\n  const targetParts = ['47201', '47210L'];\n  \n  targetParts.forEach(partCode => {\n    // Create regex pattern to find the part code and surrounding information\n    const partPattern = new RegExp(`(${partCode}[^<\\n]*(?:<[^>]*>[^<\\n]*)*(?:description|name|title)[^<\\n]*(?:<[^>]*>[^<\\n]*)*)`, 'gi');\n    const matches = html.match(partPattern);\n    \n    if (matches) {\n      matches.forEach(match => {\n        // Extract more detailed information around the part code\n        const detailPattern = new RegExp(`([^<>]*${partCode}[^<>]*)`, 'i');\n        const detailMatch = match.match(detailPattern);\n        \n        if (detailMatch) {\n          parts.push({\n            code: partCode,\n            description: detailMatch[1].trim(),\n            details: {\n              raw_text: match,\n              page_section: 'Brake Master Cylinder',\n              extracted_at: new Date().toISOString()\n            }\n          });\n        }\n      });\n    } else {\n      // Add placeholder if part not found\n      parts.push({\n        code: partCode,\n        description: 'Part not found in current page',\n        details: {\n          status: 'not_found',\n          page_section: 'Brake Master Cylinder',\n          extracted_at: new Date().toISOString()\n        }\n      });\n    }\n  });\n  \n  console.log(`Extracted ${parts.length} parts:`, parts);\n  \n} catch (error) {\n  console.error('Error extracting parts:', error);\n  parts.push({\n    code: 'ERROR',\n    description: 'Error extracting parts: ' + error.message,\n    details: { error: true }\n  });\n}\n\n// Return final result\nconst finalResult = {\n  ...vehicleData,\n  parts: parts,\n  processing_completed: true,\n  completed_at: new Date().toISOString()\n};\n\n// Remove internal links to clean up response\ndelete finalResult.model_link;\ndelete finalResult.powertrain_link;\ndelete finalResult.brake_link;\n\nreturn finalResult;"
+      },
+      "id": "extract-parts-details",
+      "name": "Extract Parts Details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2660, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response-success",
+      "name": "Webhook Response Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2880, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"No results found for VIN\",\n  \"vin\": \"{{ $('Validate VIN').first().json.vin }}\",\n  \"message\": \"The VIN search did not return any vehicle information\"\n}"
+      },
+      "id": "webhook-response-error",
+      "name": "Webhook Response Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate VIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate VIN": {
+      "main": [
+        [
+          {
+            "node": "Get Catalog Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Catalog Page": {
+      "main": [
+        [
+          {
+            "node": "Submit VIN Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit VIN Search": {
+      "main": [
+        [
+          {
+            "node": "Check Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Search Results": {
+      "main": [
+        [
+          {
+            "node": "Extract Vehicle Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Vehicle Details": {
+      "main": [
+        [
+          {
+            "node": "Get Model Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Model Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Powertrain Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Powertrain Link": {
+      "main": [
+        [
+          {
+            "node": "Get Powertrain Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Powertrain Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Brake Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Brake Link": {
+      "main": [
+        [
+          {
+            "node": "Get Brake Parts Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Brake Parts Page": {
+      "main": [
+        [
+          {
+            "node": "Extract Parts Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Parts Details": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
