@@ -84,9 +84,9 @@ app.post('/api/process-vin', async (req, res) => {
       vin: vin
     });
 
-    console.log("n8nResponse.data: ", n8nResponse.data);
-
     const results = n8nResponse.data;
+    console.log("results: ", JSON.stringify(results, null, 2));
+    
 
     /*
     // Store VIN details in database
@@ -125,7 +125,7 @@ app.post('/api/process-vin', async (req, res) => {
       }
     }
     */
-    console.log("results: ", results);
+    
     
     res.json({
       success: true,

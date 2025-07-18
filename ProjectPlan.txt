@@ -1,11 +1,19 @@
 PROJECT PLAN:
 
 v1.0.0:
-    DONE) Enter VIN
-    TODO) Fetch VIN Details
-    DONE) Fetch Brake Parts Details
-    TODO) Display Results
+    DONE: Enter VIN
+    DONE: Fetch Brake Parts Details
+    DONE: Display Results
+    DONE: Fetch VIN Details
+    
+    TODO: Batch process VINs with DB logging or spreadsheet updates
 
 v2.0.0:
-    TODO) MOVE Backend logic to N8N
+    GOAL: Server-less, light frontend architecture
+    TODO: Move backend logic to N8N
+    TODO: Eliminate Backend 
+
+v2.1.0:
+    TODO: Find Suppliers
+    TODO: Email Suppliers
     

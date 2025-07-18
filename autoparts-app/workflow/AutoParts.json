@@ -20,6 +20,19 @@
     },
     {
       "parameters": {
+        "jsCode": "//const html = $input.first().json.data;\nconst html = $node[\"Query VIN\"].json.data;\n\nconst result = {};\n\nconst tableMatch = html.match(/<table[^>]*class=[\"']wtbl v[\"'][^>]*>([\\s\\S]*?)<\\/table>/i);\n\nif (tableMatch) {\n  const tableContent = tableMatch[1];\n\n  // Match the five target div blocks\n  const divMatches = tableContent.match(/<div id=\"w[^\"]*\">[\\s\\S]*?<\\/div>\\s*<a[^>]*>(.*?)<\\/a>/gi);\n\n  if (divMatches && divMatches.length >= 5) {\n    divMatches.forEach(div => {\n      const labelMatch = div.match(/<div>(.*?)<\\/div>/i);\n      const valueMatch = div.match(/<a[^>]*>(.*?)<\\/a>/i);\n\n      if (labelMatch && valueMatch) {\n        const label = labelMatch[1].trim().toLowerCase();\n        const value = valueMatch[1].trim();\n        result[label] = value;\n      }\n    });\n  }\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -200
+      ],
+      "id": "c08ec64b-20e5-4080-8244-a520807ed247",
+      "name": "Extract Vehicle Info"
+    },
+    {
+      "parameters": {
         "url": "https://www.toyodiy.com/",
         "sendHeaders": true,
         "specifyHeaders": "json",
@@ -32,24 +45,11 @@
         }
       },
       "id": "541b71cc-05f2-4323-87e7-bf14ce3a41ac",
-      "name": "1. Establish Session",
+      "name": "Establish Session",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         220,
-        -200
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Extract VIN details - Get href from 2nd tr in table with class=\"res\"\nconst html = $input.first().json.data;\n\n// Initialize result object\nconst result = {\n  modelCodeUrl: null,\n  powertrainUrl: null,\n  brakeMasterCylinderUrl: null\n};\n\n// Step 1: Find table with class \"res\"\nconst resTableMatch = html.match(/<table[^>]*class=\"res\"[^>]*>([\\s\\S]*?)<\\/table>/i);\n\nif (resTableMatch) {\n  const resTableContent = resTableMatch[1];\n  \n  // Step 2: Find all <tr> elements within this table\n  const trMatches = resTableContent.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi);\n  \n  if (trMatches && trMatches.length >= 2) {\n    // Step 3: Access the second <tr> (index 1) - this is the data row\n    const secondTr = trMatches[1];\n    \n    // Step 4: Extract href from any link in this tr\n    const hrefMatch = secondTr.match(/<a[^>]*href=\"([^\"]*)\"[^>]*>/i);\n    \n    if (hrefMatch) {\n      const href = hrefMatch[1];\n      // Step 5: Return the complete URL\n      result.modelCodeUrl = href.startsWith('http') ? href : `https://www.toyodiy.com/parts/${href}`;\n      result.powertrainUrl = result.modelCodeUrl ? result.modelCodeUrl.replace('.html', '_2.html') : null;\n      result.brakeMasterCylinderUrl = result.modelCodeUrl ? result.modelCodeUrl.replace(\"/g_\", \"/p_\").replace('.html', '_4702.html') : null;\n    }\n  }\n}\n\nreturn result;"
-      },
-      "id": "a41cb63f-7233-4c3b-8c4a-7a810632c1b5",
-      "name": "3. Extract URLs",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        660,
         -200
       ]
     },
@@ -69,11 +69,24 @@
         }
       },
       "id": "a83a31de-79e7-4bdb-9194-26f62d97e72e",
-      "name": "2. Query VIN",
+      "name": "Query VIN",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
         440,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract VIN details - Get href from 2nd tr in table with class=\"res\"\n//const html = $input.first().json.data;\nconst html = $node[\"Query VIN\"].json.data;\n\n// Initialize result object\nconst result = {\n  modelCodeUrl: null,\n  powertrainUrl: null,\n  brakeMasterCylinderUrl: null\n};\n\n// Step 1: Find table with class \"res\"\nconst resTableMatch = html.match(/<table[^>]*class=\"res\"[^>]*>([\\s\\S]*?)<\\/table>/i);\n\nif (resTableMatch) {\n  const resTableContent = resTableMatch[1];\n  \n  // Step 2: Find all <tr> elements within this table\n  const trMatches = resTableContent.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi);\n  \n  if (trMatches && trMatches.length >= 2) {\n    // Step 3: Access the second <tr> (index 1) - this is the data row\n    const secondTr = trMatches[1];\n    \n    // Step 4: Extract href from any link in this tr\n    const hrefMatch = secondTr.match(/<a[^>]*href=\"([^\"]*)\"[^>]*>/i);\n    \n    if (hrefMatch) {\n      const href = hrefMatch[1];\n      // Step 5: Return the complete URL\n      result.modelCodeUrl = href.startsWith('http') ? href : `https://www.toyodiy.com/parts/${href}`;\n      result.powertrainUrl = result.modelCodeUrl ? result.modelCodeUrl.replace('.html', '_2.html') : null;\n      result.brakeMasterCylinderUrl = result.modelCodeUrl ? result.modelCodeUrl.replace(\"/g_\", \"/p_\").replace('.html', '_4702.html') : null;\n    }\n  }\n}\n\nreturn result;"
+      },
+      "id": "a41cb63f-7233-4c3b-8c4a-7a810632c1b5",
+      "name": "Extract URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
         -200
       ]
     },
@@ -93,22 +106,9 @@
         }
       },
       "id": "d54ffda7-7bf7-43dc-835e-87c7b135acf6",
-      "name": "4. Query Brake Master Cylinder",
+      "name": "Query Brake Master Cylinder",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [
-        880,
-        -200
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Extract Brake Parts - Find 47201 and 47210L parts with their details\nconst html = $input.first().json.data;\n\nconsole.log('HTML length:', html.length);\nconsole.log('HTML preview:', html.substring(0, 500));\n\n// Function to clean text content\nconst cleanText = (text) => {\n  return text\n    .replace(/<[^>]*>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/\\s+/g, ' ')\n    .trim();\n};\n\n// Initialize result array\nconst result = [];\n\n// Target part codes to look for\nconst targetParts = ['47201', '47210L'];\n\n// Process each target part\ntargetParts.forEach(partCode => {\n  console.log(`\\n=== Processing part: ${partCode} ===`);\n  \n  // Find the position of the target part code in a tr class=\"h\"\n  //  const partRegex = new RegExp(`<tr[^>]*class=\"h\"[^>]*>\\\\s*<td[^>]*>${partCode}</td>`, 'i');\n  //const partRegex = new RegExp(`${partCode}`, 'i');\n  //console.log('Regex pattern:', partRegex.toString());\n  \n  const partMatch = html.search(partCode);\n  console.log('Part match position:', partMatch);\n  \n  if (partMatch !== -1) {\n    // Found the target part, now find the closing </tr> of this header row\n    const afterPartMatch = html.substring(partMatch);\n    console.log('After part match (first 200 chars):', afterPartMatch.substring(0, 200));\n    \n    const closingTrMatch = afterPartMatch.search(/<\\/tr>/i);\n    console.log('Closing tr match position:', closingTrMatch);\n    \n    if (closingTrMatch !== -1) {\n      // Get content after the closing </tr>\n      const afterClosingTr = afterPartMatch.substring(closingTrMatch + 5); // +5 for \"</tr>\"\n      console.log('After closing tr (first 300 chars):', afterClosingTr.substring(0, 300));\n      \n      // Find the next <tbody> to know where to stop\n      const nextTbodyMatch = afterClosingTr.search(/<tbody[^>]*>/i);\n      console.log('Next tbody match position:', nextTbodyMatch);\n      \n      let contentToProcess;\n      if (nextTbodyMatch !== -1) {\n        // Stop at the next <tbody>\n        contentToProcess = afterClosingTr.substring(0, nextTbodyMatch);\n        console.log('Content to process (stopped at next tbody):', contentToProcess);\n      } else {\n        // No next <tbody> found, process until end of table or significant marker\n        const tableEndMatch = afterClosingTr.search(/<\\/table>/i);\n        console.log('Table end match position:', tableEndMatch);\n        if (tableEndMatch !== -1) {\n          contentToProcess = afterClosingTr.substring(0, tableEndMatch);\n          console.log('Content to process (stopped at table end):', contentToProcess);\n        } else {\n          contentToProcess = afterClosingTr;\n          console.log('Content to process (no end marker found):', contentToProcess.substring(0, 500));\n        }\n      }\n      \n      // Extract all tr elements from this content\n      const trMatches = contentToProcess.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi);\n      console.log('TR matches found:', trMatches ? trMatches.length : 0);\n      if (trMatches) {\n        console.log('First TR match:', trMatches[0]);\n      }\n      \n      if (trMatches && trMatches.length > 0) {\n        const parts = [];\n        \n        // Process each tr\n        trMatches.forEach((trMatch, index) => {\n          console.log(`\\nProcessing TR ${index + 1}:`, trMatch);\n          \n          // Extract all td elements from this tr\n          // Use matchAll to reliably capture the contents of each <td>\n          const tdMatches = [...trMatch.matchAll(/<td[^>]*>([^<]*)/gi)];\n          const tdValues = tdMatches.map(m => cleanText(m[1]));\n          \n          console.log('TD matches found:', tdValues.length);\n          console.log('TD contents:', tdValues);\n          \n          if (tdValues.length >= 4) {\n            const partNumber = tdValues[0];\n            const description = tdValues[1];\n            const quantity = parseInt(tdValues[2]) || 0;\n            const price = tdValues[3];\n          \n            console.log('Extracted data:', { partNumber, description, quantity, price });\n            \n            // Only add if we have valid data\n            if (partNumber && partNumber.trim() !== '') {\n              parts.push({\n                part_number: partNumber,\n                description: description,\n                quantity: quantity,\n                price: price\n              });\n              console.log('Added part to array');\n            } else {\n              console.log('Part number empty, skipping');\n            }\n          } else {\n            console.log('Not enough TD elements found');\n          }\n        });\n        \n        console.log('Total parts found for', partCode, ':', parts.length);\n        \n        // Add to result\n        result.push({\n          group: partCode,\n          parts: parts.length > 0 ? parts : null\n        });\n      } else {\n        console.log('No tr elements found after header');\n        // No tr's found after the header\n        result.push({\n          group: partCode,\n          parts: null\n        });\n      }\n    } else {\n      console.log('No closing </tr> found for header');\n      // No closing </tr> found for header\n      result.push({\n        group: partCode,\n        parts: null\n      });\n    }\n  } else {\n    console.log('Target part not found in HTML');\n    // Target part not found\n    result.push({\n      group: partCode,\n      parts: null\n    });\n  }\n});\n\nconsole.log('\\n=== Final result ===');\nconsole.log(JSON.stringify(result, null, 2));\n\nreturn result;"
-      },
-      "id": "6084a8a8-4fc2-4971-9b72-8ccfac8c0129",
-      "name": "5. Extract Brake Parts",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
       "position": [
         1100,
         -200
@@ -121,9 +121,35 @@
         "options": {}
       },
       "id": "80e6d236-8f8b-49c7-8a14-f2dca6b03bbc",
-      "name": "6. Respond to Webhook",
+      "name": "Respond to Webhook",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
+      "position": [
+        1760,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const vehicleInfo = $node[\"Extract Vehicle Info\"].json;\nconst partsArray = $items(\"Extract Brake Parts Info\").map(item => item.json);\n\nreturn {\n  \"Vehicle\": vehicleInfo,\n  \"Brake Parts\": partsArray\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -200
+      ],
+      "id": "b0538522-f8dc-4831-bc53-b447fed586e9",
+      "name": "Set Response Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Brake Parts - Find 47201 and 47210L parts with their details\nconst html = $input.first().json.data;\n\nconsole.log('HTML length:', html.length);\nconsole.log('HTML preview:', html.substring(0, 500));\n\n// Function to clean text content\nconst cleanText = (text) => {\n  return text\n    .replace(/<[^>]*>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/\\s+/g, ' ')\n    .trim();\n};\n\n// Initialize result array\nconst result = [];\n\n// Target part codes to look for\nconst targetParts = ['47201', '47210L'];\n\n// Process each target part\ntargetParts.forEach(partCode => {\n  console.log(`\\n=== Processing part: ${partCode} ===`);\n  \n  // Find the position of the target part code in a tr class=\"h\"\n  //  const partRegex = new RegExp(`<tr[^>]*class=\"h\"[^>]*>\\\\s*<td[^>]*>${partCode}</td>`, 'i');\n  //const partRegex = new RegExp(`${partCode}`, 'i');\n  //console.log('Regex pattern:', partRegex.toString());\n  \n  const partMatch = html.search(partCode);\n  console.log('Part match position:', partMatch);\n  \n  if (partMatch !== -1) {\n    // Found the target part, now find the closing </tr> of this header row\n    const afterPartMatch = html.substring(partMatch);\n    console.log('After part match (first 200 chars):', afterPartMatch.substring(0, 200));\n    \n    const closingTrMatch = afterPartMatch.search(/<\\/tr>/i);\n    console.log('Closing tr match position:', closingTrMatch);\n    \n    if (closingTrMatch !== -1) {\n      // Get content after the closing </tr>\n      const afterClosingTr = afterPartMatch.substring(closingTrMatch + 5); // +5 for \"</tr>\"\n      console.log('After closing tr (first 300 chars):', afterClosingTr.substring(0, 300));\n      \n      // Find the next <tbody> to know where to stop\n      const nextTbodyMatch = afterClosingTr.search(/<tbody[^>]*>/i);\n      console.log('Next tbody match position:', nextTbodyMatch);\n      \n      let contentToProcess;\n      if (nextTbodyMatch !== -1) {\n        // Stop at the next <tbody>\n        contentToProcess = afterClosingTr.substring(0, nextTbodyMatch);\n        console.log('Content to process (stopped at next tbody):', contentToProcess);\n      } else {\n        // No next <tbody> found, process until end of table or significant marker\n        const tableEndMatch = afterClosingTr.search(/<\\/table>/i);\n        console.log('Table end match position:', tableEndMatch);\n        if (tableEndMatch !== -1) {\n          contentToProcess = afterClosingTr.substring(0, tableEndMatch);\n          console.log('Content to process (stopped at table end):', contentToProcess);\n        } else {\n          contentToProcess = afterClosingTr;\n          console.log('Content to process (no end marker found):', contentToProcess.substring(0, 500));\n        }\n      }\n      \n      // Extract all tr elements from this content\n      const trMatches = contentToProcess.match(/<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi);\n      console.log('TR matches found:', trMatches ? trMatches.length : 0);\n      if (trMatches) {\n        console.log('First TR match:', trMatches[0]);\n      }\n      \n      if (trMatches && trMatches.length > 0) {\n        const parts = [];\n        \n        // Process each tr\n        trMatches.forEach((trMatch, index) => {\n          console.log(`\\nProcessing TR ${index + 1}:`, trMatch);\n          \n          // Extract all td elements from this tr\n          // Use matchAll to reliably capture the contents of each <td>\n          const tdMatches = [...trMatch.matchAll(/<td[^>]*>([^<]*)/gi)];\n          const tdValues = tdMatches.map(m => cleanText(m[1]));\n          \n          console.log('TD matches found:', tdValues.length);\n          console.log('TD contents:', tdValues);\n          \n          if (tdValues.length >= 4) {\n            const partNumber = tdValues[0];\n            const description = tdValues[1];\n            const quantity = parseInt(tdValues[2]) || 0;\n            const price = tdValues[3];\n          \n            console.log('Extracted data:', { partNumber, description, quantity, price });\n            \n            // Only add if we have valid data\n            if (partNumber && partNumber.trim() !== '') {\n              parts.push({\n                part_number: partNumber,\n                description: description,\n                quantity: quantity,\n                price: price\n              });\n              console.log('Added part to array');\n            } else {\n              console.log('Part number empty, skipping');\n            }\n          } else {\n            console.log('Not enough TD elements found');\n          }\n        });\n        \n        console.log('Total parts found for', partCode, ':', parts.length);\n        \n        // Add to result\n        result.push({\n          group: partCode,\n          parts: parts.length > 0 ? parts : null\n        });\n      } else {\n        console.log('No tr elements found after header');\n        // No tr's found after the header\n        result.push({\n          group: partCode,\n          parts: null\n        });\n      }\n    } else {\n      console.log('No closing </tr> found for header');\n      // No closing </tr> found for header\n      result.push({\n        group: partCode,\n        parts: null\n      });\n    }\n  } else {\n    console.log('Target part not found in HTML');\n    // Target part not found\n    result.push({\n      group: partCode,\n      parts: null\n    });\n  }\n});\n\nconsole.log('\\n=== Final result ===');\nconsole.log(JSON.stringify(result, null, 2));\n\nreturn result;"
+      },
+      "id": "6084a8a8-4fc2-4971-9b72-8ccfac8c0129",
+      "name": "Extract Brake Parts Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         1320,
         -200
@@ -159,62 +185,84 @@
       "main": [
         [
           {
-            "node": "1. Establish Session",
+            "node": "Establish Session",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "1. Establish Session": {
+    "Extract Vehicle Info": {
       "main": [
         [
           {
-            "node": "2. Query VIN",
+            "node": "Extract URLs",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "3. Extract URLs": {
+    "Establish Session": {
       "main": [
         [
           {
-            "node": "4. Query Brake Master Cylinder",
+            "node": "Query VIN",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "2. Query VIN": {
+    "Query VIN": {
       "main": [
         [
           {
-            "node": "3. Extract URLs",
+            "node": "Extract Vehicle Info",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "4. Query Brake Master Cylinder": {
+    "Extract URLs": {
       "main": [
         [
           {
-            "node": "5. Extract Brake Parts",
+            "node": "Query Brake Master Cylinder",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "5. Extract Brake Parts": {
+    "Query Brake Master Cylinder": {
       "main": [
         [
           {
-            "node": "6. Respond to Webhook",
+            "node": "Extract Brake Parts Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Response Data": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Brake Parts Info": {
+      "main": [
+        [
+          {
+            "node": "Set Response Data",
             "type": "main",
             "index": 0
           }
@@ -226,8 +274,9 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "aad8a3d0-5b29-4ea0-a6ba-6be5faaf613a",
+  "versionId": "e521131e-55de-4ed1-ad7f-6176ef0822c4",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "28a83379a6e5ac5f7cc9046da6767215e87ce06706c95fb1c6cb816c9e84a5c1"
   },
   "id": "8kqlbSC4yiRg6fua",

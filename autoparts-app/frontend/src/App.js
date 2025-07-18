@@ -236,6 +236,7 @@ function App() {
         )}
 
         {/* Processing Results */}
+        
         {results && (
           <div className={`results ${results.success ? 'success' : 'error'}`}>
             <h3>{results.success ? 'Success!' : 'Error'}</h3>
@@ -243,22 +244,58 @@ function App() {
               <div>
                 <p>VIN <strong>{results.vin}</strong> processed successfully!</p>
                 {results.data && (
-                  <div className="result-details">
-                    <h4>Vehicle Details:</h4>
-                    <ul>
-                      <li>Market: {results.data.market} Year: {results.data.year} Make: {results.data.make} Model: {results.data.model} Frame: {results.data.frame}</li>
-                      <li>Group: {results.data.group} </li>
 
-                      {results.data.parts.map((part, index) => (
-                        <div key={index}>
-                          <li>Part Number: {part.part_number}</li>
-                          <li>Description: {part.description}</li>
-                          <li>Quantity: {part.quantity}</li>
-                          <li>Price: {part.price}</li>
-                        </div>
-                      ))}
-                    </ul>
+                  <div className="result-details">
+                    <h3>Vehicle Information</h3>
+                    <table className="vehicle-table">
+                      <thead>
+                        <tr>
+                          <th>Market</th>
+                          <th>Year</th>
+                          <th>Make</th>
+                          <th>Model</th>
+                          <th>Frame</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{results.data.Vehicle.market}</td>
+                          <td>{results.data.Vehicle.year}</td>
+                          <td>{results.data.Vehicle.make}</td>
+                          <td>{results.data.Vehicle.model}</td>
+                          <td>{results.data.Vehicle.frame}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <h3>Brake Parts</h3>
+                    {results.data["Brake Parts"].map((groupItem, groupIndex) => (
+                      <div key={groupIndex} className="parts-group">
+                        <h4>Group: {groupItem.group}</h4>
+                        <table className="parts-table">
+                          <thead>
+                            <tr>
+                              <th>Part Number</th>
+                              <th>Description</th>
+                              <th>Quantity</th>
+                              <th>Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupItem.parts.map((part, partIndex) => (
+                              <tr key={partIndex}>
+                                <td>{part.part_number}</td>
+                                <td>{part.description}</td>
+                                <td>{part.quantity}</td>
+                                <td>{part.price}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
                   </div>
+                  
                 )}
               </div>
             ) : (
