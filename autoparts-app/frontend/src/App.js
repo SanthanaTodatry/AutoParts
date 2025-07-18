@@ -246,7 +246,7 @@ function App() {
                 {results.data && (
 
                   <div className="result-details">
-                    <h3>Vehicle Information</h3>
+                    <h3>Vehicle</h3>
                     <table className="vehicle-table">
                       <thead>
                         <tr>
@@ -282,13 +282,14 @@ function App() {
                             </tr>
                           </thead>
                           <tbody>
-                            {groupItem.parts.map((part, partIndex) => (
-                              <tr key={partIndex}>
-                                <td>{part.part_number}</td>
-                                <td>{part.description}</td>
-                                <td>{part.quantity}</td>
-                                <td>{part.price}</td>
-                              </tr>
+                            {Array.isArray(groupItem.parts) &&
+                              groupItem.parts.map((part, partIndex) => (
+                                <tr key={partIndex}>
+                                  <td>{part.part_number}</td>
+                                  <td>{part.description}</td>
+                                  <td>{part.quantity}</td>
+                                  <td>{part.price}</td>
+                                </tr>
                             ))}
                           </tbody>
                         </table>

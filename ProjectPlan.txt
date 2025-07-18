@@ -2,18 +2,22 @@ PROJECT PLAN:
 
 v1.0.0:
     DONE: Enter VIN
-    DONE: Fetch Brake Parts Details
-    DONE: Display Results
-    DONE: Fetch VIN Details
-    
-    TODO: Batch process VINs with DB logging or spreadsheet updates
+    DONE: Fetch Brake Parts Info
+    DONE: Display Brake Parts Info
+    DONE: Fetch Vehicle Info
+    DONE: Display Vehicl Info
+    DONE: Beautify display
 
-v2.0.0:
-    GOAL: Server-less, light frontend architecture
-    TODO: Move backend logic to N8N
-    TODO: Eliminate Backend 
-
-v2.1.0:
     TODO: Find Suppliers
     TODO: Email Suppliers
+    TODO: Batch process VINs with DB logging or spreadsheet updates
+
+    GOAL: Server-less, light frontend architecture
+        TODO: Move backend logic to N8N
+        TODO: Eliminate Backend 
+
+QUESTIONS FOR RAVI:
+
+    Is ToyoDIY just for POC or real?
+
     
