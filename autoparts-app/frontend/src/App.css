@@ -772,6 +772,18 @@ button:disabled {
   text-align: right;
 }
 
+/* Align Quantity column (3rd column) to center */
+.parts-table th:nth-child(3),
+.parts-table td:nth-child(3) {
+  text-align: center;
+}
+
+/* Align Price column (4th column) to right */
+.parts-table th:nth-child(4),
+.parts-table td:nth-child(4) {
+  text-align: right;
+}
+
 /* Responsive Design for VIN Results */
 @media (max-width: 768px) {
   .vehicle-info-grid {
