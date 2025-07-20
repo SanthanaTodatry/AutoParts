@@ -1,4 +1,3 @@
-// frontend/src/App.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
@@ -12,8 +11,10 @@ function App() {
   const [results, setResults] = useState(null);
   const [allVins, setAllVins] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [pastedVins, setPastedVins] = useState('');
+  const [bulkInputMethod, setBulkInputMethod] = useState('file');
+  const [batchProgress, setBatchProgress] = useState(null);
 
-  // Load all processed VINs on component mount
   useEffect(() => {
     fetchAllVins();
   }, []);
@@ -40,11 +41,8 @@ function App() {
       });
 
       setResults(response.data);
-      console.log('VIN processed:', response.data);
-      
-      // Clear the input field after processing
       setVin('');
-      await fetchAllVins(); // Refresh the list
+      await fetchAllVins();
     } catch (error) {
       console.error('Error processing VIN:', error);
       setResults({
@@ -60,32 +58,69 @@ function App() {
     setSelectedFile(e.target.files[0]);
   };
 
-  const processSpreadsheet = async (e) => {
+  const processBulkVins = async (e) => {
     e.preventDefault();
-    if (!selectedFile) return;
+    
+    if (bulkInputMethod === 'file' && !selectedFile) {
+      alert('Please select a file');
+      return;
+    }
+    
+    if (bulkInputMethod === 'paste' && !pastedVins.trim()) {
+      alert('Please paste some VINs');
+      return;
+    }
 
     setProcessing(true);
-    const formData = new FormData();
-    formData.append('spreadsheet', selectedFile);
+    setResults(null);
+    setBatchProgress({ current: 0, total: 0, processed: [], errors: [] });
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/process-spreadsheet`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      let response;
+      
+      if (bulkInputMethod === 'file') {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        response = await axios.post(`${API_BASE_URL}/process-bulk`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        response = await axios.post(`${API_BASE_URL}/process-bulk`, {
+          vins: pastedVins
+        });
+      }
 
       setResults(response.data);
       setSelectedFile(null);
+      setPastedVins('');
       await fetchAllVins();
     } catch (error) {
-      console.error('Error processing spreadsheet:', error);
+      console.error('Error processing bulk VINs:', error);
       setResults({
         success: false,
-        error: error.response?.data?.error || 'Failed to process spreadsheet'
+        error: error.response?.data?.error || 'Failed to process VINs'
       });
     } finally {
       setProcessing(false);
+      setBatchProgress(null);
+    }
+  };
+
+  const exportResults = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/export-results`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `autoparts-results-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting results:', error);
     }
   };
 
@@ -117,6 +152,86 @@ function App() {
     return Object.values(grouped);
   };
 
+  const renderVINResults = (results) => {
+    if (!results.success || !results.data) return null;
+
+    const data = results.data;
+    const vehicle = data.Vehicle || {};
+    const brakeParts = data["Brake Parts"] || [];
+
+    return (
+      <div className="vin-results-container">
+        <h4>VIN: {results.vin}</h4>
+        
+        {/* Vehicle Information Table */}
+        <div className="vehicle-info-section">
+          <h5>Vehicle Information:</h5>
+          <div className="vehicle-info-grid">
+            <div className="info-card">
+              <div className="info-label">MARKET:</div>
+              <div className="info-value">{vehicle.market || 'N/A'}</div>
+            </div>
+            <div className="info-card">
+              <div className="info-label">YEAR:</div>
+              <div className="info-value">{vehicle.year || 'N/A'}</div>
+            </div>
+            <div className="info-card">
+              <div className="info-label">MAKE:</div>
+              <div className="info-value">{vehicle.make || 'N/A'}</div>
+            </div>
+            <div className="info-card">
+              <div className="info-label">MODEL:</div>
+              <div className="info-value">{vehicle.model || 'N/A'}</div>
+            </div>
+            <div className="info-card">
+              <div className="info-label">FRAME:</div>
+              <div className="info-value">{vehicle.frame || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Brake Parts Table */}
+        {brakeParts.length > 0 && (
+          <div className="brake-parts-section">
+            <h5>Brake Parts Found:</h5>
+            {brakeParts.map((group, groupIndex) => (
+              <div key={groupIndex} className="parts-group">
+                <h6>Group: {group.group}</h6>
+                {group.parts && group.parts.length > 0 ? (
+                  <div className="parts-table-container">
+                    <table className="parts-table">
+                      <thead>
+                        <tr>
+                          <th>Part Number</th>
+                          <th>Description</th>
+                          <th class="right-align">Quantity</th>
+                          <th class="right-align">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.parts.map((part, partIndex) => (
+                          <tr key={partIndex}>
+                            <td className="part-number">{part.part_number || 'N/A'}</td>
+                            <td className="part-description">{part.description || 'N/A'}</td>
+                            <td className="part-quantity">{part.quantity || 'N/A'}</td>
+                            <td className="part-price">{part.price || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="no-parts">No parts found for this group</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+
   return (
     <div className="App">
       <header className="App-header">
@@ -125,7 +240,6 @@ function App() {
       </header>
 
       <main className="App-main">
-        {/* Tab Navigation */}
         <div className="tab-navigation">
           <button 
             className={activeTab === 'single' ? 'tab active' : 'tab'}
@@ -137,13 +251,13 @@ function App() {
             className={activeTab === 'bulk' ? 'tab active' : 'tab'}
             onClick={() => setActiveTab('bulk')}
           >
-            Bulk Upload
+            Bulk Process
           </button>
           <button 
             className={activeTab === 'results' ? 'tab active' : 'tab'}
             onClick={() => setActiveTab('results')}
           >
-            View Results
+            View Results ({allVins.length > 0 ? formatVinData(allVins).length : 0})
           </button>
         </div>
 
@@ -171,35 +285,116 @@ function App() {
           </div>
         )}
 
-        {/* Bulk Upload Tab */}
+        {/* Bulk Process Tab */}
         {activeTab === 'bulk' && (
           <div className="tab-content">
-            <h2>Bulk Process from Spreadsheet</h2>
-            <form onSubmit={processSpreadsheet} className="upload-form">
-              <div className="form-group">
-                <label htmlFor="spreadsheet">Select Spreadsheet:</label>
+            <h2>Bulk Process VINs</h2>
+            
+            {/* Input Method Selection */}
+            <div className="input-method-selector">
+              <label>
                 <input
-                  type="file"
-                  id="spreadsheet"
-                  accept=".xlsx,.xls,.csv"
-                  onChange={handleFileSelect}
+                  type="radio"
+                  value="file"
+                  checked={bulkInputMethod === 'file'}
+                  onChange={(e) => setBulkInputMethod(e.target.value)}
                   disabled={processing}
                 />
-                <small>Supported formats: .xlsx, .xls, .csv</small>
-              </div>
-              <button type="submit" disabled={processing || !selectedFile}>
-                {processing ? 'Processing...' : 'Process Spreadsheet'}
+                Upload File (Excel, CSV, Text)
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="paste"
+                  checked={bulkInputMethod === 'paste'}
+                  onChange={(e) => setBulkInputMethod(e.target.value)}
+                  disabled={processing}
+                />
+                Paste VINs
+              </label>
+            </div>
+
+            <form onSubmit={processBulkVins} className="bulk-form">
+              {bulkInputMethod === 'file' ? (
+                <div className="form-group">
+                  <label htmlFor="file">Select File:</label>
+                  <input
+                    type="file"
+                    id="file"
+                    accept=".xlsx,.xls,.csv,.txt"
+                    onChange={handleFileSelect}
+                    disabled={processing}
+                  />
+                  <small>Supported: Excel (.xlsx, .xls), CSV (.csv), Text (.txt)</small>
+                  <small>File may contain headers - they will be auto-detected</small>
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label htmlFor="pastedVins">Paste VINs (one per line):</label>
+                  <textarea
+                    id="pastedVins"
+                    value={pastedVins}
+                    onChange={(e) => setPastedVins(e.target.value)}
+                    placeholder="1HGBH41JXMN109186&#10;2HGBH41JXMN109187&#10;3HGBH41JXMN109188"
+                    rows="8"
+                    disabled={processing}
+                  />
+                  <small>Enter one VIN per line</small>
+                </div>
+              )}
+
+              <button type="submit" disabled={processing || (bulkInputMethod === 'file' ? !selectedFile : !pastedVins.trim())}>
+                {processing ? 'Processing Batch...' : 'Start Batch Processing'}
               </button>
             </form>
+
+            {/* Batch Progress */}
+            {batchProgress && (
+              <div className="batch-progress">
+                <h3>Processing Progress</h3>
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{ width: `${batchProgress.total > 0 ? (batchProgress.current / batchProgress.total) * 100 : 0}%` }}
+                  ></div>
+                </div>
+                <p>{batchProgress.current} of {batchProgress.total} VINs processed</p>
+                
+                {batchProgress.processed.length > 0 && (
+                  <div className="progress-details">
+                    <h4>Recently Processed:</h4>
+                    <ul>
+                      {batchProgress.processed.slice(-5).map((item, index) => (
+                        <li key={index} className={item.success ? 'success' : 'error'}>
+                          {item.vin}: {item.success ? 'Success' : item.error}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {/* Results Tab */}
         {activeTab === 'results' && (
           <div className="tab-content">
-            <h2>All Processed VINs</h2>
+            <div className="results-header">
+              <h2>All Processed VINs</h2>
+              {allVins.length > 0 && (
+                <button onClick={exportResults} className="export-button">
+                  📊 Export to CSV
+                </button>
+              )}
+            </div>
+            
             {allVins.length > 0 ? (
               <div className="results-table-container">
+                <div className="results-summary">
+                  <p>Total VINs: {formatVinData(allVins).length}</p>
+                </div>
+                
                 <table className="results-table">
                   <thead>
                     <tr>
@@ -211,104 +406,75 @@ function App() {
                       <th>Frame</th>
                       <th>Parts Found</th>
                       <th>Processed</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {formatVinData(allVins).map((vinData, index) => (
                       <tr key={index}>
-                        <td>{vinData.vin}</td>
+                        <td className="vin-cell">{vinData.vin}</td>
                         <td>{vinData.market}</td>
                         <td>{vinData.year}</td>
                         <td>{vinData.make}</td>
                         <td>{vinData.model}</td>
                         <td>{vinData.frame}</td>
-                        <td>{vinData.parts.length}</td>
+                        <td>
+                          <span className="parts-count">
+                            {vinData.parts.length} parts
+                          </span>
+                        </td>
                         <td>{new Date(vinData.created_at).toLocaleDateString()}</td>
+                        <td>
+                          <button 
+                            className="view-details-btn"
+                            onClick={() => {
+                              setResults({
+                                success: true,
+                                vin: vinData.vin,
+                                data: vinData
+                              });
+                              setActiveTab('single');
+                            }}
+                          >
+                            View Details
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p>No VINs processed yet.</p>
+              <div className="no-results">
+                <p>No VINs processed yet.</p>
+                <p>Use the "Single VIN" or "Bulk Process" tabs to get started.</p>
+              </div>
             )}
           </div>
         )}
 
-        {/* Processing Results */}
-        
+        {/* Processing Results Display */}
         {results && (
-          <div className={`results ${results.success ? 'success' : 'error'}`}>
-            <h3>{results.success ? 'Success!' : 'Error'}</h3>
+          <div className={`results-display ${results.success ? 'success' : 'error'}`}>
+            <h3>{results.success ? '✅ Success!' : '❌ Error'}</h3>
+            
             {results.success ? (
-              <div>
-                <p>VIN <strong>{results.vin}</strong> processed successfully!</p>
-                {results.data && (
-
-                  <div className="result-details">
-                    <h3>Vehicle</h3>
-                    <table className="vehicle-table">
-                      <thead>
-                        <tr>
-                          <th>Market</th>
-                          <th>Year</th>
-                          <th>Make</th>
-                          <th>Model</th>
-                          <th>Frame</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>{results.data.Vehicle.market}</td>
-                          <td>{results.data.Vehicle.year}</td>
-                          <td>{results.data.Vehicle.make}</td>
-                          <td>{results.data.Vehicle.model}</td>
-                          <td>{results.data.Vehicle.frame}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-
-                    <h3>Brake Parts</h3>
-                    {results.data["Brake Parts"].map((groupItem, groupIndex) => (
-                      <div key={groupIndex} className="parts-group">
-                        <h4>Group: {groupItem.group}</h4>
-                        <table className="parts-table">
-                          <thead>
-                            <tr>
-                              <th>Part Number</th>
-                              <th>Description</th>
-                              <th>Quantity</th>
-                              <th>Price</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {Array.isArray(groupItem.parts) &&
-                              groupItem.parts.map((part, partIndex) => (
-                                <tr key={partIndex}>
-                                  <td>{part.part_number}</td>
-                                  <td>{part.description}</td>
-                                  <td>{part.quantity}</td>
-                                  <td>{part.price}</td>
-                                </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ))}
-                  </div>
-                  
-                )}
-              </div>
+              renderVINResults(results)
             ) : (
-              <p>{results.error}</p>
+              <div className="error-content">
+                <p>{results.error}</p>
+              </div>
             )}
+            
+            <button 
+              className="close-results" 
+              onClick={() => setResults(null)}
+            >
+              Close
+            </button>
           </div>
         )}
       </main>
-
-      <footer className="App-footer">
-        <p>Autoparts VIN Processor - Development Version</p>
-      </footer>
     </div>
   );
 }

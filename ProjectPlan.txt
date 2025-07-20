@@ -2,22 +2,65 @@ PROJECT PLAN:
 
 v1.0.0:
     DONE: Enter VIN
-    DONE: Fetch Brake Parts Info
-    DONE: Display Brake Parts Info
     DONE: Fetch Vehicle Info
-    DONE: Display Vehicl Info
+    DONE: Fetch Brake Parts Info
+
+    DONE: Display Vehicle Info
+    DONE: Display Brake Parts Info
     DONE: Beautify display
+
+    TODO: Batch process VINs with DB logging or spreadsheet updates
+
+v2.0.0:
+    TODO: Add all other groups and parts
 
     TODO: Find Suppliers
     TODO: Email Suppliers
-    TODO: Batch process VINs with DB logging or spreadsheet updates
 
     GOAL: Server-less, light frontend architecture
         TODO: Move backend logic to N8N
         TODO: Eliminate Backend 
 
-QUESTIONS FOR RAVI:
+ALL GROUPS & PARTS TO EXTRACT:
 
-    Is ToyoDIY just for POC or real?
+    From Multiple Pages!!!!
 
-    
+    41-02: REAR AXLE SHAFT & HUB
+        42431	DISC, REAR
+    43-03: FRONT AXLE HUB
+        43512	DISC, FRONT
+DONE 47-02: BRAKE MASTER CYLINDER 
+        47201	CYLINDER SUB-ASSY, BRAKE MASTER
+        47210L  BOOSTER
+    47-03: BRAKE BOOSTER & VACUUM TUBE
+        44610	BOOSTER ASSY, BRAKE
+    47-05: FRONT DISC BRAKE CALIPER & DUST COVER
+        47750	CYLINDER ASSY, DISC BRAKE, LH
+        47730	CYLINDER ASSY, FRONT DISC BRAKE, RH
+        04479	CYLINDER KIT, DISC BRAKE, FRONT
+        47731	PISTON, FRONT DISC BRAKE
+        04465	PAD KIT, DISC BRAKE, FRONT
+    47-06: REAR DRUM BRAKE WHEEL CYLINDER & BACKING PLATE
+        47570	CYLINDER ASSY, REAR WHEEL BRAKE(FOR LH, FRONT OR UPPER)
+        47550	CYLINDER ASSY, REAR WHEEL BRAKE(FOR RH, FRONT OR UPPER)
+        47580	CYLINDER ASSY, REAR WHEEL BRAKE(FOR LH, REAR OR LOWER)
+        47560	CYLINDER ASSY, REAR WHEEL BRAKE(FOR RH, REAR OR LOWER)
+        04474	CYLINDER KIT, REAR WHEEL
+        04495	SHOE KIT, REAR BRAKE
+    47-07: REAR DISC BRAKE CALIPER & DUST COVER
+        47850	CYLINDER ASSY, DISC BRAKE, REAR LH
+        47830	CYLINDER ASSY, DISC BRAKE, REAR RH
+        04479A	CYLINDER KIT, DISC BRAKE, REAR
+        47731B	PISTON, REAR DISC BRAKE
+        04466	PAD KIT, DISC BRAKE, REAR
+    47-08: BRAKE TUBE & CLAMP
+        47313A	HOSE, FLEXIBLE, NO.1(FOR FRONT)
+        47313J	HOSE, FLEXIBLE, NO.2(FOR FRONT)
+        47315B	HOSE, FLEXIBLE(FOR BRAKE TUBE)
+        47319F	HOSE, FLEXIBLE(FOR REAR LH)
+        47318F	HOSE, FLEXIBLE(FOR REAR RH)
+        47321B	HOSE, FLEXIBLE(FOR REAR BRAKE TUBE)
+
+EXPORT TO EXCEL:
+
+{Market	Year	Make	Model	Frame} {Part Number	Description	Quantity} x Number of Parts
