@@ -9,17 +9,15 @@ v1.0.0:
     DONE: Display Brake Parts Info
     DONE: Beautify display
 
+    TODO: EXPORT TO EXCEL:
+        {Market	Year	Make	Model	Frame} {Part Number	Description	Quantity} x Number of Parts
+
     TODO: Batch process VINs with DB logging or spreadsheet updates
 
 v2.0.0:
     TODO: Add all other groups and parts
-
     TODO: Find Suppliers
     TODO: Email Suppliers
-
-    GOAL: Server-less, light frontend architecture
-        TODO: Move backend logic to N8N
-        TODO: Eliminate Backend 
 
 ALL GROUPS & PARTS TO EXTRACT:
 
@@ -29,9 +27,9 @@ ALL GROUPS & PARTS TO EXTRACT:
         42431	DISC, REAR
     43-03: FRONT AXLE HUB
         43512	DISC, FRONT
-DONE 47-02: BRAKE MASTER CYLINDER 
-        47201	CYLINDER SUB-ASSY, BRAKE MASTER
-        47210L  BOOSTER
+x   47-02: BRAKE MASTER CYLINDER 
+x       47201	CYLINDER SUB-ASSY, BRAKE MASTER
+x       47210L  BOOSTER
     47-03: BRAKE BOOSTER & VACUUM TUBE
         44610	BOOSTER ASSY, BRAKE
     47-05: FRONT DISC BRAKE CALIPER & DUST COVER
@@ -61,6 +59,3 @@ DONE 47-02: BRAKE MASTER CYLINDER
         47318F	HOSE, FLEXIBLE(FOR REAR RH)
         47321B	HOSE, FLEXIBLE(FOR REAR BRAKE TUBE)
 
-EXPORT TO EXCEL:
-
-{Market	Year	Make	Model	Frame} {Part Number	Description	Quantity} x Number of Parts

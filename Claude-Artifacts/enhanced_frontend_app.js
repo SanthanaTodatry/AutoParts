@@ -91,8 +91,6 @@ function App() {
       }
 
       setResults(response.data);
-      console.log('Bulk processing results:', response.data);
-      
       setSelectedFile(null);
       setPastedVins('');
       await fetchAllVins();
@@ -153,86 +151,6 @@ function App() {
     });
     return Object.values(grouped);
   };
-
-  const renderVINResults = (results) => {
-    if (!results.success || !results.data) return null;
-
-    const data = results.data;
-    const vehicle = data.Vehicle || {};
-    const brakeParts = data["Brake Parts"] || [];
-
-    return (
-      <div className="vin-results-container">
-        <h4>VIN: {results.vin}</h4>
-        
-        {/* Vehicle Information Table */}
-        <div className="vehicle-info-section">
-          <h5>Vehicle Information:</h5>
-          <div className="vehicle-info-grid">
-            <div className="info-card">
-              <div className="info-label">MARKET:</div>
-              <div className="info-value">{vehicle.market || 'N/A'}</div>
-            </div>
-            <div className="info-card">
-              <div className="info-label">YEAR:</div>
-              <div className="info-value">{vehicle.year || 'N/A'}</div>
-            </div>
-            <div className="info-card">
-              <div className="info-label">MAKE:</div>
-              <div className="info-value">{vehicle.make || 'N/A'}</div>
-            </div>
-            <div className="info-card">
-              <div className="info-label">MODEL:</div>
-              <div className="info-value">{vehicle.model || 'N/A'}</div>
-            </div>
-            <div className="info-card">
-              <div className="info-label">FRAME:</div>
-              <div className="info-value">{vehicle.frame || 'N/A'}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Brake Parts Table */}
-        {brakeParts.length > 0 && (
-          <div className="brake-parts-section">
-            <h5>Brake Parts Found:</h5>
-            {brakeParts.map((group, groupIndex) => (
-              <div key={groupIndex} className="parts-group">
-                <h6>Group: {group.group}</h6>
-                {group.parts && group.parts.length > 0 ? (
-                  <div className="parts-table-container">
-                    <table className="parts-table">
-                      <thead>
-                        <tr>
-                          <th>Part Number</th>
-                          <th>Description</th>
-                          <th className="quantity-header">Quantity</th>
-                          <th className="price-header">Price</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.parts.map((part, partIndex) => (
-                          <tr key={partIndex}>
-                            <td className="part-number">{part.part_number || 'N/A'}</td>
-                            <td className="part-description">{part.description || 'N/A'}</td>
-                            <td className="part-quantity quantity-cell">{part.quantity || 'N/A'}</td>
-                            <td className="part-price price-cell">{part.price || 'N/A'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="no-parts">No parts found for this group</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
 
   return (
     <div className="App">
@@ -461,7 +379,50 @@ function App() {
             <h3>{results.success ? '✅ Success!' : '❌ Error'}</h3>
             
             {results.success ? (
-              renderVINResults(results)
+              <div className="success-content">
+                {results.data ? (
+                  <div className="vin-details">
+                    <h4>VIN: {results.vin}</h4>
+                    
+                    {/* Vehicle Information */}
+                    <div className="vehicle-info">
+                      <h5>Vehicle Information:</h5>
+                      <div className="info-grid">
+                        <div><strong>Market:</strong> {results.data.market}</div>
+                        <div><strong>Year:</strong> {results.data.year}</div>
+                        <div><strong>Make:</strong> {results.data.make}</div>
+                        <div><strong>Model:</strong> {results.data.model}</div>
+                        <div><strong>Frame:</strong> {results.data.frame}</div>
+                      </div>
+                    </div>
+
+                    {/* Parts Information */}
+                    {results.data.parts && results.data.parts.length > 0 && (
+                      <div className="parts-info">
+                        <h5>Brake Parts Found:</h5>
+                        <div className="parts-list">
+                          {results.data.parts.map((part, index) => (
+                            <div key={index} className="part-item">
+                              <strong>Part {part.code}:</strong> {part.description}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="batch-results">
+                    <p>{results.message}</p>
+                    {results.summary && (
+                      <div className="batch-summary">
+                        <p>✅ Successful: {results.summary.successful}</p>
+                        <p>❌ Failed: {results.summary.failed}</p>
+                        <p>📊 Total: {results.summary.total}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="error-content">
                 <p>{results.error}</p>
